@@ -1,18 +1,36 @@
-# A fastapi (website) called Mr Wolf where the user inputs a city and country to get the current time there
-# TODO easier to have drop down options for country and city?
-# TODO What's the weather Mr Wolf?
+# A fastapi 'Mr Wolf' where the user inputs a city to get the current time there
+# TODO: update mrwolf.db with more timezones
 
 from fastapi import FastAPI
 import requests
+import sqlite3
 
-#create user interface
+app = FastAPI(docs_url="/")
 
-#ask for user to input a country
-#time_zone = city
-#ask for user to input a city
-city = input("Enter a city to find out it's current time: ")
-#using input, get time from web
-response_json = requests.get(f"http://worldtimeapi.org/api/Europe/{city}.txt")
-time = response_json
-#display time to user
-print(f"The current time in {city} is {time}")
+@app.get("/what-is-the-time-mr-wolf")
+def city_time(city):
+    #TODO: remove the below
+    '''try:
+        tz = cities[city]
+    except KeyError:
+        return (f"choose from {cities.keys()}")'''
+    # connect to mrwolf.db to search for requested city, and return it's timezone
+    # cursor allows you to execute multiple things
+    with sqlite3.connect('mrwolf.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute(f"""
+        SELECT timezone FROM city
+        WHERE name = '{city}'
+        """)
+        result = cursor.fetchone()
+        # if city does not exist in mrwolf.db, returns the below error message
+        # if it does exist, print the result not as a tuple
+        if not result:
+            return f"Unsupported city {city}"
+        else:
+            tz = result[0]
+        print(tz)
+        #inputs the required timezone into the url and returns the time (and other data)
+        response = requests.get(f"https://worldtimeapi.org/api/timezone/{tz}")
+        data = response.json()
+        return data
