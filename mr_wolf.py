@@ -15,7 +15,7 @@ def city_time(city):
     except KeyError:
         return (f"choose from {cities.keys()}")'''
     # connect to mrwolf.db to search for requested city, and return it's timezone
-    # cursor allows you to execute multiple things
+    # cursor allows you to execute SQL from within python
     with sqlite3.connect('mrwolf.db') as conn:
         cursor = conn.cursor()
         cursor.execute(f"""
